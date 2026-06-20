@@ -47,10 +47,32 @@ export async function POST(req: NextRequest) {
         },
       ],
       temperature: 0.3,
+      stream: true,
     })
 
-    const result = completion.choices[0]?.message?.content || ""
-    return NextResponse.json({ result })
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of completion) {
+            const text = chunk.choices[0]?.delta?.content
+            if (text) controller.enqueue(encoder.encode(text))
+          }
+        } catch (e) {
+          controller.error(e)
+        } finally {
+          controller.close()
+        }
+      },
+    })
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache",
+        "X-Content-Type-Options": "nosniff",
+      },
+    })
   } catch (error: unknown) {
     console.error("Meeting API error:", error)
     const message = error instanceof Error ? error.message : "处理失败，请重试"
