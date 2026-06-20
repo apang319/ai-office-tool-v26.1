@@ -2,9 +2,9 @@ import OpenAI from "openai"
 
 export function getKimiClient() {
   return new OpenAI({
-    apiKey: process.env.KIMI_API_KEY || "",
-    baseURL: "https://api.moonshot.cn/v1",
+    apiKey: process.env.AI_API_KEY || "",
+    baseURL: `${process.env.AI_BASE_URL}/v1`,
   })
 }
 
-export const KIMI_MODEL = "moonshot-v1-8k"
+export const KIMI_MODEL = process.env.AI_MODEL || "deepseek/deepseek-v3.2-251201"
